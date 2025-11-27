@@ -1248,7 +1248,7 @@
         // 渲染到頁面
         const targetContent = document.querySelector(`.tab-content[data-tab-content-id="${dayId}"]`);
         const cardHtml = createActivityCardHtml(newActivity, dayId);
-        targetContent.insertAdjacentHTML('beforeend', cardHtml);
+        targetContent.insertAdjacentHTML('afterbegin', cardHtml);
 
         // 清空輸入
         document.getElementById('newActivityTime').value = '';
@@ -1948,4 +1948,5 @@
 
 </script>
 </body>
+
 </html>
