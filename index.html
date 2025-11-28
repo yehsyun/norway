@@ -1,0 +1,1897 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+   <meta charset="UTF-8">
+   <meta name="viewport" content="width=device-width, initial-scale=1.0">
+   <title>🇳🇴 Norway ❄️</title>
+    <link rel="stylesheet" href="leaflet/leaflet.css"> 
+    <script src="leaflet/leaflet.js"></script>
+
+   <style>
+       /* ==================================== */
+       /* 莫蘭迪色系 CSS 樣式 (手機響應式優化) */
+       /* ==================================== */
+       
+       /* 基礎設定：使用 box-sizing 讓佈局更直觀 */
+       *, *::before, *::after {
+           box-sizing: border-box;
+       }
+
+       body {
+           font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
+           background-color: #f7f7f7; /* <-- 極淺中性灰 */
+           color: #333;
+           margin: 0;
+           /* 響應式優化 */
+           padding: 1rem;
+           font-size: 16px; 
+       }
+
+       /* 在較小螢幕上將基礎字體稍微縮小 */
+       @media (max-width: 600px) {
+           body {
+               font-size: 14px;
+               padding: 0.5rem;
+           }
+       }
+
+       .container {
+           max-width: 900px;
+           margin: 0 auto;
+           background-color: #ffffff;
+           padding: 30px;
+           border-radius: 8px;
+           box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+           position: relative;
+           z-index: 200;
+       }
+       
+       /* 確保手機上邊距不會過大 */
+       @media (max-width: 600px) {
+           .container {
+               padding: 15px;
+           }
+       }
+
+       h1 {
+           color: #4a6984;
+           text-align: center;
+           border-bottom: 3px solid #4a6984;
+           padding-bottom: 15px;
+           margin-bottom: 30px;
+       }
+
+       /* --- 費用輸入區塊樣式 --- */
+       .input-form {
+           background-color: #f7f4e9;
+           padding: 20px;
+           border-radius: 5px;
+           margin-top: 30px;
+           margin-bottom: 30px;
+           display: flex;
+           gap: 15px;
+           flex-wrap: wrap;
+           align-items: flex-end;
+       }
+
+       .form-group {
+           display: flex;
+           flex-direction: column;
+       }
+       /* 手機上表單元素佔滿一行 */
+       @media (max-width: 600px) {
+           .input-form .form-group {
+               width: 100% !important; /* 覆蓋 inline width */
+               flex-shrink: 1 !important;
+           }
+       }
+
+       .form-group label {
+           font-weight: bold;
+           margin-bottom: 5px;
+           color: #4a6984;
+           font-size: 0.9em;
+       }
+
+       .input-form input, .input-form select,
+       /* 確保 itinerary-manager 內的 input 樣式一致 */
+       .itinerary-manager input, .itinerary-manager select {
+           padding: 10px;
+           border: 1px solid #c9d2d6;
+           border-radius: 4px;
+           font-size: 1em;
+           width: 100%;
+           box-sizing: border-box;
+       }
+
+       .add-button {
+           padding: 10px 20px;
+           background-color: #9b7673;
+           color: white;
+           border: none;
+           border-radius: 4px;
+           cursor: pointer;
+           font-weight: bold;
+           transition: background-color 0.3s;
+           min-width: 100px;
+       }
+       /* 手機上新增按鈕佔滿一行 */
+       @media (max-width: 600px) {
+           .input-form .add-button {
+               width: 100%;
+           }
+       }
+
+       .add-button:hover {
+           background-color: #7d605e;
+       }
+
+       /* --- 行程管理區塊樣式 (適應 Tab 內容) --- */
+       .itinerary-manager {
+           /* 當作 Tab 內容中的一個區塊，使用柔和背景與邊框 */
+           background-color: #f7f4e9;
+           padding: 20px;
+           border-radius: 5px;
+           border: 1px solid #e0e7e8;
+       }
+
+       .itinerary-manager h2 {
+           margin-top: 0;
+           background-color: #4a6984 !important;
+           color: white !important;
+           border-left: 5px solid #2e4d69;
+           cursor: default;
+           padding: 12px 15px;
+           border-radius: 5px;
+       }
+
+       .manager-group {
+           margin-bottom: 15px;
+       }
+
+       .manager-group label {
+           font-weight: bold;
+           display: block;
+           margin-bottom: 5px;
+           color: #9b7673;
+       }
+
+       .manager-group .input-row {
+           display: flex;
+           gap: 10px;
+           flex-wrap: wrap; /* 允許換行 */
+       }
+       /* 手機上，select 元素應該佔滿一行，但保留彈性 */
+       @media (max-width: 600px) {
+           .manager-group .input-row select,
+           .manager-group .input-row input {
+               min-width: 100%; /* 強制佔滿 */
+           }
+       }
+
+
+       /* --- 費用卡片樣式 --- */
+       .expense-list {
+           display: flex;
+           flex-direction: column;
+           gap: 10px;
+           margin-bottom: 20px;
+       }
+
+       .expense-card {
+           display: flex;
+           align-items: center;
+           background-color: #f8f8f8;
+           border: 1px solid #c9d2d6;
+           border-radius: 5px;
+           padding: 15px;
+           box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+       }
+       /* 手機上卡片優化 */
+       @media (max-width: 480px) {
+           .expense-card {
+               flex-wrap: wrap;
+           }
+           .card-main-info {
+               flex-basis: 100%; /* 主資訊佔滿一行 */
+               margin-bottom: 10px;
+           }
+           .card-amounts {
+               text-align: left;
+               margin-left: 0;
+           }
+           .delete-card-btn {
+               margin-left: auto; /* 靠右對齊 */
+           }
+       }
+
+       .card-icon {
+           font-size: 2em;
+           margin-right: 15px;
+           flex-shrink: 0;
+       }
+
+       .card-main-info {
+           flex-grow: 1;
+       }
+
+       .card-description {
+           font-weight: bold;
+           color: #333;
+           margin-bottom: 3px;
+       }
+
+       .card-meta {
+           font-size: 0.9em;
+           color: #666;
+       }
+
+       .card-amounts {
+           text-align: right;
+           margin-left: 15px;
+           flex-shrink: 0;
+       }
+
+       .amount-ntd {
+           font-size: 1.2em;
+           color: #9b7673;
+           font-weight: bold;
+       }
+
+       .amount-nok {
+           font-size: 0.9em;
+           color: #4a6984;
+       }
+
+       .delete-card-btn {
+           background-color: #c97c77;
+           color: white;
+           border: none;
+           padding: 8px 10px;
+           margin-left: 10px;
+           cursor: pointer;
+           border-radius: 3px;
+           font-size: 0.9em;
+           transition: background-color 0.3s;
+           flex-shrink: 0;
+       }
+
+       .delete-card-btn:hover {
+           background-color: #a86460;
+       }
+
+       /* --- 費用總計與篩選工具樣式 --- */
+       .cost-summary {
+           background-color: #f0ede5;
+           padding: 15px;
+           border-radius: 5px;
+           display: flex;
+           justify-content: space-between;
+           align-items: center;
+           font-size: 1.1em;
+           font-weight: bold;
+           margin-bottom: 20px;
+       }
+       /* 手機上總計顯示換行 */
+       @media (max-width: 400px) {
+           .cost-summary {
+               flex-direction: column;
+               align-items: flex-start;
+               gap: 5px;
+           }
+       }
+
+       .total-amount-display {
+           color: #9b7673;
+           font-size: 1.5em;
+       }
+
+       .filter-sort-bar {
+           display: flex;
+           gap: 10px;
+           align-items: center;
+           margin-bottom: 15px;
+           background-color: #f0f7f9;
+           padding: 10px;
+           border-radius: 5px;
+           flex-wrap: wrap; /* 允許換行 */
+       }
+
+       .filter-sort-bar label {
+           font-weight: normal;
+           color: #4a6984;
+           flex-shrink: 0;
+       }
+       /* 讓 select 在手機上佔滿一行 */
+       @media (max-width: 480px) {
+           .filter-sort-bar select {
+               width: 100%;
+               margin-top: 5px;
+           }
+       }
+
+       .filter-sort-bar select {
+           padding: 8px;
+           border-radius: 4px;
+           border: 1px solid #c9d2d6;
+           flex-grow: 1;
+       }
+
+       /* --- 支出統計表格樣式 --- */
+       .stats-table {
+           width: 100%;
+           border-collapse: collapse;
+           font-size: 1em;
+           text-align: left;
+           margin-top: 15px;
+       }
+
+       .stats-table th, .stats-table td {
+           border: 1px solid #c9d2d6;
+           padding: 10px;
+       }
+
+       .stats-table th {
+           background-color: #4a6984;
+           color: white;
+           font-weight: bold;
+           text-align: center;
+       }
+
+       .stats-table tr:nth-child(even) {
+           background-color: #f0f7f9;
+       }
+
+       .stats-table .total-row td {
+           background-color: #f7e1e1;
+           font-weight: bold;
+           color: #9b7673;
+           font-size: 1.1em;
+       }
+
+       .stats-table .percentage-cell {
+           text-align: right;
+       }
+
+       /* ==================================== */
+       /* 橫向標籤頁 (Tabs) 樣式 */
+       /* ==================================== */
+
+       .tab-bar {
+           display: flex;
+           overflow-x: auto;
+           white-space: nowrap;
+           border-bottom: 2px solid #9b7673;
+           margin-bottom: 0;
+           padding-bottom: 0;
+           user-select: none;
+           -webkit-overflow-scrolling: touch;
+       }
+
+       .tab-button {
+           padding: 10px 15px;
+           cursor: pointer;
+           background-color: #e0e7e8;
+           color: #4a6984;
+           border: 1px solid #c9d2d6;
+           border-bottom: none;
+           border-top-left-radius: 5px;
+           border-top-right-radius: 5px;
+           margin-right: 5px;
+           transition: background-color 0.3s, color 0.3s;
+           flex-shrink: 0;
+           font-weight: bold;
+           text-align: center;
+           line-height: 1.3;
+       }
+
+       .tab-button.active {
+           background-color: #ffffff;
+           color: #9b7673;
+           border-color: #9b7673;
+           border-bottom: 2px solid #ffffff;
+           z-index: 10;
+           position: relative;
+       }
+
+       .tab-content {
+           border: 1px solid #9b7673;
+           padding: 20px;
+           background-color: #ffffff;
+           border-radius: 0 5px 5px 5px;
+           margin-top: -1px;
+           display: none;
+           flex-direction: column;
+           gap: 10px;
+       }
+
+       .tab-content.active {
+           display: flex;
+       }
+
+       /* ==================================== */
+       /* 行程卡片樣式 (已優化) */
+       /* ==================================== */
+
+       .activity-card {
+           display: flex; /* 啟用 Flexbox */
+           flex-wrap: wrap; /* 允許在空間不足時換行 */
+           align-items: center; /* 垂直居中對齊 */
+           background-color: #f8f8f8;
+           border: 1px solid #e0e7e8;
+           border-left: 5px solid #4a6984;
+           border-radius: 5px;
+           padding: 10px 40px 10px 15px;
+           box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+           gap: 10px; /* 增加元件間距 */
+           position: relative;
+       }
+
+       .card-time {
+           /* 讓時間欄位固定寬度，不佔用太多空間 */
+           flex-shrink: 0;
+           width: 60px; /* 設置一個固定的時間寬度 */
+           padding-bottom: 0;
+           margin-bottom: 0; 
+           /* 移除邊框，讓卡片更簡潔 */
+           border-bottom: none; 
+           font-weight: bold;
+           color: #4a6984;
+           line-height: 1.4;
+           font-size: 1.1em;
+           outline: none;
+           text-align: center;
+       }
+        
+       .card-time[contenteditable="true"]:focus {
+            box-shadow: 0 0 0 1px #e6e6fa;
+            border-radius: 3px;
+       }
+
+       .card-activity-details {
+           /* 讓內容盡可能佔滿剩餘空間 */
+           flex-grow: 1; 
+           display: flex;
+           flex-direction: column;
+           line-height: 1.4;
+           min-width: 50%; /* 確保內容在小螢幕上可以佔據至少一半寬度 */
+       }
+
+       /* 內容可編輯區塊樣式 - 用於活動描述 */
+       .editable-content {
+           flex-grow: 1;
+           padding: 0 5px;
+           transition: box-shadow 0.2s;
+           outline: none;
+           cursor: text;
+           margin-bottom: 5px;
+           font-size: 1.1em;
+           min-height: 1.2em;
+       }
+
+       .editable-content:focus {
+           box-shadow: 0 0 0 2px #e6e6fa;
+           border-radius: 3px;
+       }
+
+       /* 地圖連結容器 */
+       .card-map-links {
+           display: flex;
+           gap: 8px;
+           margin-top: 5px;
+       }
+
+       a.map-link {
+           color: #6a8ba2;
+           font-size: 0.9em;
+           text-decoration: none;
+           font-weight: bold;
+           cursor: pointer;
+           flex-shrink: 0;
+           line-height: 1;
+           display: flex;
+           align-items: center;
+           padding: 3px 5px;
+           border: 1px solid #d3d3e6;
+           border-radius: 3px;
+           background-color: #f0f7f9;
+       }
+
+       a.map-link:hover {
+           background-color: #e0e7e8;
+           color: #4a6984;
+       }
+       
+       /* 編輯地圖按鈕特別樣式 */
+       a.map-link.edit-link {
+           color: #9b7673;
+           background-color: #f7e1e1; 
+           border-color: #e1c4c4;
+       }
+
+
+       .delete-btn {
+           background-color: #c97c77;
+           color: white;
+           border: none;
+           padding: 5px 8px;
+           position: absolute;
+           top: 10px;
+           right: 10px;
+           cursor: pointer;
+           border-radius: 3px;
+           font-size: 0.9em;
+           transition: background-color 0.3s;
+           flex-shrink: 0;
+       }
+
+       .delete-btn:hover {
+           background-color: #a86460;
+       }
+
+       /* 特殊行程項目樣式 - 交通/住宿 */
+       .transport-item {
+           border-left-color: #6a8ba2;
+           background-color: #f0f7f9;
+       }
+
+       .lodging-item {
+           border-left-color: #9b7673;
+           background-color: #f9f0f0;
+       }
+
+       .highlight {
+           font-weight: bold;
+           color: #4a6984;
+       }
+       /* ==================================== */
+       /* Packing List & Documents CSS */
+       /* ==================================== */
+       .packing-item, .document-item {
+           display: flex;
+           justify-content: space-between;
+           align-items: center;
+           padding: 10px;
+           border-bottom: 1px dashed #eee;
+           cursor: pointer;
+           transition: background-color 0.1s;
+       }
+       .packing-item:hover, .document-item:hover {
+           background-color: #f9f9f9;
+       }
+       .packing-item.checked {
+          opacity: 0.6;
+          background-color: #f0f0f0;
+       }
+       .packing-item.checked .card-description::before {
+          content: "✅ ";
+          font-weight: bold;
+       }
+       .packing-item .card-main-info {
+          cursor: pointer;
+          flex-grow: 1;
+       }
+       .doc-link {
+           color: #4a6984;
+           text-decoration: none;
+           font-weight: bold;
+       }
+       .document-list {
+           display: flex;
+           flex-direction: column;
+           gap: 10px;
+       }
+       .document-card {
+           background-color: #f0f7f9;
+           border: 1px solid #c9d2d6;
+           border-radius: 5px;
+           padding: 15px;
+           display: flex;
+           justify-content: space-between;
+           align-items: center;
+           box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+           font-size: 1.1em;
+       }
+       .document-title {
+           font-weight: bold;
+           color: #4a6984;
+           flex-grow: 1;
+       }
+   </style>
+</head>
+<body>
+
+<div class="snow"></div>
+
+<div class="container">
+   <h1>🇳🇴 Norway ❄️</h1>
+
+   <div id="itinerarySection" class="itinerary-section">
+       <div class="tab-bar" id="tabBar">
+           <button class="tab-button active" data-tab-id="expenses">💰 費用清單</button>
+           <button class="tab-button" data-tab-id="day1">🗓️ Day 1: 12/5</button>
+           <button class="tab-button" data-tab-id="day2">🗓️ Day 2: 12/6</button>
+           <button class="tab-button" data-tab-id="day3">🗓️ Day 3: 12/7</button>
+        
+ 
+           <button class="tab-button" data-tab-id="day4">🗓️ Day 4: 12/8</button>
+           <button class="tab-button" data-tab-id="day5">🗓️ Day 5: 12/9</button>
+           <button class="tab-button" data-tab-id="day6">🗓️ Day 6: 12/10</button>
+           <button class="tab-button" data-tab-id="day7">🗓️ Day 7: 12/11</button>
+           <button class="tab-button" data-tab-id="day8">🗓️ Day 8: 12/12</button>
+           <button class="tab-button" data-tab-id="day9">🗓️ Day 9: 12/13</button>
+     
+           <button 
+                class="tab-button" data-tab-id="day10">🗓️ Day 10: 12/14</button>
+           <button class="tab-button" data-tab-id="day11">🗓️ Day 11: 12/15</button>
+           <button class="tab-button" data-tab-id="day12">🗓️ Day 12: 12/16</button>
+           
+           <button class="tab-button" data-tab-id="manager">➕ 行程管理</button>
+           
+           <button class="tab-button" data-tab-id="stats">📊 支出統計</button> 
+           <button class="tab-button" data-tab-id="packing">📦 打包清單</button>
+           <button 
+                class="tab-button" data-tab-id="documents">📄 文件清單</button>
+           <button class="tab-button" data-tab-id="backup">💾 儲存修復</button>
+       
+       </div>
+
+        <div class="tab-content active" data-tab-content-id="expenses">
+           <h2>新增/管理支出 💸</h2>
+           <div class="input-form">
+               <div class="form-group">
+                   
+                   <label for="expenseDate">日期</label>
+                   <input type="date" id="expenseDate" value="2025-12-05">
+       
+                </div>
+               <div class="form-group">
+                   <label for="expenseCategory">類別</label>
+                  
+                   <select id="expenseCategory">
+                       <option value="飲食">飲食 🍕</option>
+           
+                       <option value="交通">交通 ✈️</option>
+                       <option value="住宿">住宿 🏨</option>
+            
+                       <option value="購物">購物 🛍️</option>
+                       <option value="活動">活動 ⛷️</option>
+           
+                       <option value="其他">其他 ❓</option>
+                   </select>
+       
+               </div>
+               <div class="form-group">
+                   <label for="expenseDescription">描述</label>
+                
+                   <input type="text" id="expenseDescription" placeholder="輸入消費描述">
+               </div>
+   
+               <div class="form-group" style="width: 120px;
+                flex-shrink: 0;">
+                    <label for="currentExchangeRate">當前匯率 (1 NOK = ? NTD)</label>
+                    <input type="number" id="currentExchangeRate" placeholder="例如: 3.00" value="3.00" step="0.01" min="0.01">
+                </div>
+               <div class="form-group" style="width: 100px;
+                flex-shrink: 0;">
+                   <label for="expenseAmountNOK">挪威克朗 (NOK)</label>
+                   <input type="number" id="expenseAmountNOK" placeholder="金額" min="1">
+               </div>
+               <button class="add-button" onclick="addExpense()" style="background-color: #9b7673;">新增支出</button>
+           </div>
+          
+           
+           <div class="filter-sort-bar">
+               <label for="expenseFilter">篩選類別:</label>
+               <select id="expenseFilter" onchange="sortAndFilterExpenses()">
+                   <option value="all">所有類別</option>
+                   <option value="飲食">飲食 🍕</option>
+             
+ 
+                   <option value="交通">交通 ✈️</option>
+                   <option value="住宿">住宿 🏨</option>
+                   <option value="購物">購物 🛍️</option>
+                   <option value="活動">活動 ⛷️</option>
+                 
+                   <option value="其他">其他 ❓</option>
+               </select>
+               <label for="expenseSort">排序方式:</label>
+               <select id="expenseSort" onchange="sortAndFilterExpenses()">
+                   <option value="date_desc">日期 (新到舊)</option>
+                   <option value="date_asc">日期 (舊到新)</option>
+      
+                   <option value="ntd_desc">金額 (高到低)</option>
+                   <option value="ntd_asc">金額 (低到高)</option>
+                   <option value="category_asc">類別名稱</option>
+               </select>
+           </div>
+
+           <div class="cost-summary">
+      
+                <span>💰 總計費用 (NTD 估算):</span>
+               <span class="total-amount-display">NTD <span id="totalAmount">35,810</span></span>
+               <span style="font-size: 0.9em;
+                color: #4a6984;">(NOK: <span id="totalNokAmount">11,937</span>)</span>
+           </div>
+
+           <div id="expenseBody" class="expense-list">
+               <div class="expense-card" data-category="住宿" data-amount="20000" data-nok="6667" data-rate="3.00" data-date-str="12/12" data-iso-date="2025-12-12">
+                   <span class="card-icon">🏨</span>
+                   <div class="card-main-info">
+           
+                        <div class="card-description">CLARION HOTEL THE EDGE 兩晚</div>
+                       <div class="card-meta">住宿 · 12/12 (匯率 3.00)</div>
+                   </div>
+                   <div class="card-amounts">
+                
+                        <div class="amount-ntd">NTD 20,000</div>
+                       <div class="amount-nok">NOK 6,667</div>
+                   </div>
+                   <button class="delete-card-btn" onclick="deleteCard(this)">刪除</button>
+               </div>
+           
+               <div class="expense-card" data-category="交通" data-amount="15000" data-nok="5000" data-rate="3.00" data-date-str="12/05" data-iso-date="2025-12-05">
+                   <span class="card-icon">✈️</span>
+                   <div class="card-main-info">
+                       <div class="card-description">台灣-挪威 來回機票</div>
+                       <div 
+                            class="card-meta">交通 · 12/05 (匯率 3.00)</div>
+                   </div>
+                   <div class="card-amounts">
+                       <div class="amount-ntd">NTD 15,000</div>
+                       <div class="amount-nok">NOK 5,000</div>
+       
+                    </div>
+                   <button class="delete-card-btn" onclick="deleteCard(this)">刪除</button>
+               </div>
+               <div class="expense-card" data-category="飲食" data-amount="810" data-nok="270" data-rate="3.00" data-date-str="12/05" data-iso-date="2025-12-05">
+                   <span class="card-icon">🍕</span>
+          
+                    <div class="card-main-info">
+                       <div class="card-description">機場簡餐</div>
+                       <div class="card-meta">飲食 · 12/05 (匯率 3.00)</div>
+                   </div>
+                   
+                    <div class="card-amounts">
+                       <div class="amount-ntd">NTD 810</div>
+                       <div class="amount-nok">NOK 270</div>
+                   </div>
+                   <button class="delete-card-btn" onclick="deleteCard(this)">刪除</button>
+         
+               </div>
+           </div>
+       </div> 
+       <div class="tab-content" data-tab-content-id="day1">
+           <div class="activity-card transport-item" data-activity-id="1703271600000" data-type="transport" data-day-id="day1">
+                <div class="delete-btn" onclick="deleteActivityCard(this)">刪除</div>
+                <div class="card-time" contenteditable="true">15:30</div>
+                <div class="card-activity-details">
+     
+                    <div class="editable-content" contenteditable="true">搭乘機場巴士前往飯店</div>
+                    <div class="card-map-links"></div>
+                </div>
+            </div>
+            <div class="activity-card lodging-item" data-activity-id="1703271600001" data-type="lodging" data-day-id="day1">
+                <div class="delete-btn" 
+                    onclick="deleteActivityCard(this)">刪除</div>
+                <div class="card-time" contenteditable="true">住宿</div>
+                <div class="card-activity-details">
+                    <div class="editable-content" contenteditable="true">Radisson Blu Hotel, Tromsø (已預訂)</div>
+                    <div class="card-map-links"></div>
+                </div>
+  
+            </div>
+        </div> 
+        <div class="tab-content" data-tab-content-id="day2">
+            <div class="activity-card" data-activity-id="1703271600002" data-type="activity" data-day-id="day2">
+                <div class="delete-btn" onclick="deleteActivityCard(this)">刪除</div>
+                <div class="card-time" contenteditable="true">09:00</div>
+                <div class="card-activity-details">
+                    <div class="editable-content" contenteditable="true">參觀 <span class='highlight'>特羅姆瑟博物館 (Tromsø Museum)</span></div>
+                    <div class="card-map-links"></div>
+                </div>
+            </div>
+            <div class="activity-card" data-activity-id="1703271600003" data-type="activity" data-day-id="day2">
+                <div class="delete-btn" onclick="deleteActivityCard(this)">刪除</div>
+                <div class="card-time" contenteditable="true">13:00</div>
+                <div class="card-activity-details">
+                    <div class="editable-content" contenteditable="true">午餐：試試北極海鮮湯</div>
+                    <div class="card-map-links"></div>
+                </div>
+            </div>
+            <div class="activity-card" data-activity-id="1703271600004" data-type="activity" data-day-id="day2">
+                <div class="delete-btn" onclick="deleteActivityCard(this)">刪除</div>
+                <div class="card-time" contenteditable="true">19:00</div>
+                <div class="card-activity-details">
+                    <div class="editable-content" contenteditable="true">北極光追逐之旅 (已預訂)</div>
+                    <div class="card-map-links"></div>
+                </div>
+            </div>
+        </div>
+        <div class="tab-content" data-tab-content-id="day3"></div>
+        <div class="tab-content" data-tab-content-id="day4"></div>
+        <div class="tab-content" data-tab-content-id="day5"></div>
+        <div class="tab-content" data-tab-content-id="day6"></div>
+        <div class="tab-content" data-tab-content-id="day7"></div>
+        <div class="tab-content" data-tab-content-id="day8"></div>
+        <div class="tab-content" data-tab-content-id="day9"></div>
+        <div class="tab-content" data-tab-content-id="day10"></div>
+        <div class="tab-content" data-tab-content-id="day11"></div>
+        <div class="tab-content" data-tab-content-id="day12"></div>
+        
+        <div class="tab-content" data-tab-content-id="manager">
+            <div class="itinerary-manager">  
+                <h2>行程新增與管理</h2>
+                <div class="manager-group">
+                    <label>新增當日活動</label>
+                    <div class="input-row">
+                        <select id="daySelector">
+                        </select>
+                        <input type="text" id="newActivityTime" placeholder="時間/標題 (必填)" style="flex-grow: 1; min-width: 100px;">
+                    </div>
+                    <div class="input-row" style="margin-bottom: 10px;">
+                        <input type="text" id="newActivityDescription" placeholder="活動描述 (必填)">
+                        <select id="newActivityType">
+                            <option value="activity">一般活動</option>
+                            <option value="transport">交通 🚏</option>
+                            <option value="lodging">住宿 🏨</option>
+                            <option value="lodging">其他 📄</option>
+                        </select>
+                    </div>
+                    <div class="input-row">
+                        <input type="text" id="newActivityMapUrl" placeholder="地圖 URL (選填, 輸入後會覆蓋自動搜尋)">
+                        <button class="add-button" onclick="addActivityToDay()" style="flex-shrink: 0;">新增活動</button>
+                    </div>
+                </div>
+                <hr style="border-top: 1px solid #c9d2d6; margin: 20px 0;">
+                </div>
+            </div>
+        </div>
+
+        <div class="tab-content" data-tab-content-id="stats">
+            <h2>支出類別統計 📊</h2>
+            <div id="expenseStatsContainer"> 
+            </div>
+        </div>
+        <div class="tab-content" data-tab-content-id="packing">
+            <h2>打包清單 📦</h2>
+            <div class="input-form" style="margin-bottom: 20px;">
+                <div class="form-group" style="flex-grow: 1;">
+                    <label for="packingItem">新增物品</label>
+                    <input type="text" id="packingItem" placeholder="例如: 保暖羽絨外套">
+                </div>
+                <button class="add-button" onclick="addPackingItem()">新增</button>
+            </div>
+            <div id="packingList" class="expense-list"> 
+            </div>
+        </div> 
+        <div class="tab-content" data-tab-content-id="documents">
+            <h2>重要文件清單 📄</h2>
+            <div class="input-form" style="margin-bottom: 20px;">
+                <div class="form-group" style="flex-grow: 1;">
+                    <label for="docTitle">文件標題</label>
+                    <input type="text" id="docTitle" placeholder="例如: 機票訂單編號">
+                </div>
+                <div class="form-group" style="flex-grow: 1;">
+                    <label for="docLink">連結 (URL)</label>
+                    <input type="text" id="docLink" placeholder="選填: 貼上文件網址">
+                </div>
+                <button class="add-button" onclick="addDocument()">新增文件</button>
+            </div>
+            <div id="documentList" class="document-list"> 
+            </div>
+        </div> 
+        <div class="tab-content" data-tab-content-id="backup">
+            <h2>資料備份與修復 💾</h2>
+            <p>最後儲存時間: <span id="lastSaveTime">無記錄</span></p>
+            <div id="backup-container">
+                <button id="export-data-btn" class="add-button" onclick="exportData()">💾 匯出備份 (複製到剪貼板)</button>
+                <button id="import-data-btn" class="add-button" onclick="importData()">🔄 匯入備份 (將覆蓋現有資料)</button>
+            </div>
+            <button id="reset-data-btn" class="delete-card-btn" onclick="resetData()">🚨 重置所有資料 (危險操作)</button>
+        </div>
+        
+    </div>
+
+<script>
+    // ====================================
+    // 全域變數與初始化
+    // ====================================
+    const STORAGE_KEY = 'travelPlannerData_norway';
+    let ITINERARY = {};
+    let EXPENSES = [
+        { date: '2025-12-12', category: '住宿', description: 'CLARION HOTEL THE EDGE 兩晚', amountNOK: 6667, amountNTD: 20000, exchangeRate: 3.00 },
+        { date: '2025-12-05', category: '交通', description: '台灣-挪威 來回機票', amountNOK: 5000, amountNTD: 15000, exchangeRate: 3.00 },
+        { date: '2025-12-05', category: '飲食', description: '機場簡餐', amountNOK: 270, amountNTD: 810, exchangeRate: 3.00 }
+    ];
+    let PACKING_LIST = [];
+    let DOCUMENTS = [];
+    
+    // 預設行程頁籤 (Day 1 到 Day 12)
+    const DEFAULT_TABS = [
+        { id: "day1", title: "🗓️ Day 1: 12/5" },
+        { id: "day2", title: "🗓️ Day 2: 12/6" },
+        { id: "day3", title: "🗓️ Day 3: 12/7" },
+        { id: "day4", title: "🗓️ Day 4: 12/8" },
+        { id: "day5", title: "🗓️ Day 5: 12/9" },
+        { id: "day6", title: "🗓️ Day 6: 12/10" },
+        { id: "day7", title: "🗓️ Day 7: 12/11" },
+        { id: "day8", title: "🗓️ Day 8: 12/12" },
+        { id: "day9", title: "🗓️ Day 9: 12/13" },
+        { id: "day10", title: "🗓️ Day 10: 12/14" },
+        { id: "day11", title: "🗓️ Day 11: 12/15" },
+        { id: "day12", title: "🗓️ Day 12: 12/16" }
+    ];
+
+    let ITINERARY_TABS = DEFAULT_TABS;
+    let dayCounter = 12;
+
+    document.addEventListener('DOMContentLoaded', function() {
+        loadData();
+
+        // 初始化 Tab 點擊事件
+        document.querySelectorAll('.tab-button').forEach(button => {
+            button.addEventListener('click', function() {
+                switchTab(this.getAttribute('data-tab-id'));
+            });
+        });
+
+        // 設置預設 Tab
+        const defaultTab = document.querySelector('.tab-button[data-tab-id="expenses"]');
+        if (defaultTab) {
+            switchTab("expenses");
+        } else {
+            const firstTab = document.querySelector('.tab-button');
+            if (firstTab) {
+                switchTab(firstTab.getAttribute('data-tab-id'));
+            }
+        }
+    });
+
+    // ====================================
+    // DOM 操作與輔助函數
+    // ====================================
+
+    // 啟動所有 contenteditable 欄位的事件監聽器
+    function initEditableContent() {
+        document.querySelectorAll('.editable-content, .card-time[contenteditable="true"]').forEach(element => {
+            // 確保 onblur 事件已綁定，以自動儲存
+            element.removeEventListener('blur', saveData);
+            element.addEventListener('blur', saveData);
+
+            // 處理貼上事件，避免貼上 HTML 樣式
+            element.removeEventListener('paste', handleEditablePaste);
+            element.addEventListener('paste', handleEditablePaste);
+
+            // 針對活動內容，新增一個 input 監聽器，以便內容改變時更新地圖連結
+            if (element.classList.contains('editable-content')) {
+                element.removeEventListener('input', updateMapLinksOnInput);
+                element.addEventListener('input', updateMapLinksOnInput);
+            }
+        });
+    }
+
+    function handleEditablePaste(event) {
+        event.preventDefault();
+        const text = event.clipboardData.getData('text/plain');
+        document.execCommand('insertText', false, text);
+        
+        // 觸發 input 事件來更新地圖連結
+        if (event.target.classList.contains('editable-content')) {
+            updateMapLinksOnInput({ target: event.target });
+        }
+    }
+
+    function updateMapLinksOnInput(event) {
+        const card = event.target.closest('.activity-card');
+        if (card) {
+            // 延遲更新，避免輸入時頻繁觸發
+            clearTimeout(card.updateTimer);
+            card.updateTimer = setTimeout(() => {
+                updateMapLinksForCard(card);
+            }, 500);
+        }
+    }
+
+
+    function getGoogleMapsUrl(query) {
+        if (!query) return null;
+        const encodedQuery = encodeURIComponent(query);
+        return `https://www.google.com/maps/search/?api=1&query=${encodedQuery}`;
+    }
+
+    /**
+     * 讓用戶輸入或清除地圖連結
+     */
+    function editMapLink(btn) {
+        const card = btn.closest('.activity-card');
+        const activityId = parseInt(card.getAttribute('data-activity-id'));
+        const dayId = card.closest('.tab-content').getAttribute('data-tab-content-id');
+
+        const activity = ITINERARY[dayId] ? ITINERARY[dayId].find(a => a.id === activityId) : null;
+        if (!activity) return;
+
+        const currentUrl = activity.mapUrlOverride || '';
+        const newUrl = prompt("請輸入地圖的完整 URL 連結，或輸入 '清除' 來移除連結。", currentUrl);
+
+        if (newUrl === null) return; // 按下取消
+
+        if (newUrl.toLowerCase() === '清除' || newUrl.trim() === '') {
+            activity.mapUrlOverride = "";
+        } else if (newUrl.startsWith('http')) {
+            activity.mapUrlOverride = newUrl.trim();
+        } else {
+            alert('輸入無效。請輸入以 http:// 或 https:// 開頭的完整 URL，或輸入「清除」。');
+            return;
+        }
+
+        saveData(); // 儲存數據
+        updateMapLinksForCard(card); // 更新卡片顯示
+    }
+
+    /**
+     * 更新單個活動卡片的動態地圖連結顯示。
+     */
+    function updateMapLinksForCard(card) {
+        const dayId = card.closest('.tab-content').getAttribute('data-tab-content-id');
+        const activityId = parseInt(card.getAttribute('data-activity-id'));
+        
+        // 確保 card 有 data-day-id 屬性 (這是新增的修改，確保 JS 能正確找到)
+        card.setAttribute('data-day-id', dayId);
+
+        const activity = ITINERARY[dayId] ? ITINERARY[dayId].find(a => a.id === activityId) : null;
+        const editableContent = card.querySelector('.editable-content');
+        const mapLinksContainer = card.querySelector('.card-map-links');
+
+        if (!activity || !editableContent || !mapLinksContainer) {
+            if(mapLinksContainer) mapLinksContainer.innerHTML = '';
+            return;
+        }
+
+        let linkHtml = '';
+        const savedUrl = activity.mapUrlOverride; // 從數據中獲取手動連結
+        const activityText = editableContent.innerText.trim();
+
+        // 1. 判斷使用手動連結還是自動生成連結
+        if (savedUrl && savedUrl.startsWith('http')) {
+            // 使用手動連結
+            linkHtml = `<a href="${savedUrl}" target="_blank" class="map-link" title="手動設定連結">🔗 手動連結</a>`;
+        } else if (activityText && activity.type === 'activity') {
+            // 只對一般活動啟用自動搜尋
+            // 自動生成連結 (使用前 50 字作為查詢)
+            const searchQuery = activityText.substring(0, 50);
+            const mapUrl = getGoogleMapsUrl(searchQuery);
+            if (mapUrl) {
+                linkHtml = `<a href="${mapUrl}" target="_blank" class="map-link" title="Google Maps 搜尋: ${searchQuery}">🗺️ 自動搜尋</a>`;
+            }
+        }
+
+        // 2. 加入編輯按鈕
+        const editButtonHtml = `<a href="javascript:void(0)" onclick="editMapLink(this)" class="map-link edit-link" title="設定或清除地圖連結">📝 編輯連結</a>`;
+        mapLinksContainer.innerHTML = linkHtml + editButtonHtml;
+    }
+
+    // 切換頁籤
+    function switchTab(tabId) {
+        document.querySelectorAll('.tab-content').forEach(content => {
+            content.classList.remove('active');
+        });
+        document.querySelectorAll('.tab-button').forEach(button => {
+            button.classList.remove('active');
+        });
+
+        const contentElement = document.querySelector(`.tab-content[data-tab-content-id="${tabId}"]`);
+        const buttonElement = document.querySelector(`.tab-button[data-tab-id="${tabId}"]`);
+
+        if (contentElement && buttonElement) {
+            contentElement.classList.add('active');
+            buttonElement.classList.add('active');
+        } else {
+             // 如果找不到頁籤，切回費用清單
+             switchTab("expenses");
+             return;
+        }
+
+
+        // 如果切換到 Day 或 Manager Tab，更新 Day Selector 的選項
+        if (tabId.startsWith('day') || tabId === 'manager') {
+            loadDaySelector();
+            const daySelector = document.getElementById('daySelector');
+            if (daySelector && tabId.startsWith('day')) {
+                daySelector.value = tabId;
+            } else if (daySelector && !daySelector.value) {
+                // 如果在 manager 頁面，預設選擇 day1
+                daySelector.value = 'day1';
+            }
+        }
+        
+        // 如果是 stats 頁面，重新生成統計表
+        if (tabId === 'stats') {
+            generateExpenseStatsTable();
+        }
+    }
+
+    // 渲染單個活動卡片
+    function renderActivityCard(activity, dayId) {
+        const typeClass = activity.type === 'transport' ? 'transport-item' : activity.type === 'lodging' ? 'lodging-item' : '';
+        const rawDescription = activity.description || '';
+        
+        return `
+            <div class="activity-card ${typeClass}" data-activity-id="${activity.id}" data-type="${activity.type}" data-day-id="${dayId}">
+                <div class="delete-btn" onclick="deleteActivityCard(this)">刪除</div>
+                <div class="card-time" contenteditable="true">${activity.time || '時間'}</div>
+                <div class="card-activity-details">
+                    <div class="editable-content" contenteditable="true">${rawDescription}</div>
+                    <div class="card-map-links"></div>
+                </div>
+            </div>
+        `;
+    }
+
+    // 刪除行程活動卡片
+    function deleteActivityCard(btn) {
+        if (!confirm('確定要刪除這項行程嗎？')) return;
+        const card = btn.closest('.activity-card');
+        if (!card) return;
+
+        const dayId = card.getAttribute('data-day-id');
+        const activityId = parseInt(card.getAttribute('data-activity-id'));
+
+        if (ITINERARY[dayId]) {
+            ITINERARY[dayId] = ITINERARY[dayId].filter(a => a.id !== activityId);
+        }
+
+        card.remove();
+        saveData();
+    }
+
+    // 載入 Day Selector 選項
+    function loadDaySelector() {
+        const selector = document.getElementById('daySelector');
+        if (!selector) return;
+
+        selector.innerHTML = ''; // 清空現有選項
+
+        // 重新從 ITINERARY_TABS 創建選項
+        ITINERARY_TABS.forEach(tab => {
+            if (tab.id.startsWith('day')) {
+                const option = document.createElement('option');
+                option.value = tab.id;
+                option.textContent = tab.title;
+                selector.appendChild(option);
+            }
+        });
+
+        // 預設選取當前頁籤 (如果它是 Day 頁籤)
+        const activeTabId = document.querySelector('.tab-button.active')?.getAttribute('data-tab-id');
+        if (activeTabId && activeTabId.startsWith('day')) {
+            selector.value = activeTabId;
+        } else if (selector.options.length > 0) {
+            // 如果當前不在 Day 頁籤，預設選擇 Day 1
+            selector.value = selector.options[0].value;
+        }
+    }
+
+    // 新增行程活動到當日
+    function addActivityToDay() {
+        const dayId = document.getElementById('daySelector').value;
+        const time = document.getElementById('newActivityTime').value.trim();
+        const description = document.getElementById('newActivityDescription').value.trim();
+        const type = document.getElementById('newActivityType').value;
+        const mapUrlOverride = document.getElementById('newActivityMapUrl').value.trim();
+
+        if (dayId === '' || time === '' || description === '') {
+            alert('請填寫完整「日期」、「時間/標題」和「活動描述」！');
+            return;
+        }
+
+        const newActivity = {
+            id: Date.now(),
+            time: time,
+            description: description,
+            type: type,
+            mapUrlOverride: mapUrlOverride.startsWith('http') ? mapUrlOverride : ""
+        };
+
+        // 確保 Day ID 在 ITINERARY 中存在
+        if (!ITINERARY[dayId]) {
+            ITINERARY[dayId] = [];
+        }
+
+        ITINERARY[dayId].push(newActivity);
+
+        // 渲染到 DOM
+        const tabContent = document.querySelector(`.tab-content[data-tab-content-id="${dayId}"]`);
+        if (tabContent) {
+            tabContent.insertAdjacentHTML('beforeend', renderActivityCard(newActivity, dayId));
+            
+            // 找到新卡片並初始化編輯事件和地圖連結
+            const newCard = tabContent.lastElementChild;
+            initEditableContent();
+            updateMapLinksForCard(newCard);
+        }
+
+        // 清空輸入框
+        document.getElementById('newActivityTime').value = '';
+        document.getElementById('newActivityDescription').value = '';
+        document.getElementById('newActivityMapUrl').value = '';
+        saveData(); // 儲存並排序 (會自動排序該日行程)
+    }
+
+    // 新增一天行程
+    function addDayTab() {
+        const titleInput = document.getElementById('newDayTitle');
+        const newTitle = titleInput.value.trim();
+
+        if (newTitle === '') {
+            alert('請輸入新的 Day 標題！');
+            return;
+        }
+
+        dayCounter++;
+        const newDayId = `day${dayCounter}`;
+        const defaultDayTitle = `🗓️ Day ${dayCounter}`;
+        const finalTitle = newTitle.startsWith('🗓️ Day') ? newTitle : defaultDayTitle + (newTitle ? `: ${newTitle}` : '');
+
+
+        const newTab = { id: newDayId, title: finalTitle };
+        ITINERARY_TABS.push(newTab);
+        ITINERARY[newDayId] = []; // 初始化行程內容
+
+        // 重新渲染所有 Tab Button 和 Tab Content，確保排序正確
+        renderTabsAndContent({
+            itinerary: ITINERARY,
+            itineraryTabs: ITINERARY_TABS,
+            dayCounter: dayCounter,
+            expenses: EXPENSES, // 保持其他數據不變
+            packingList: PACKING_LIST,
+            documents: DOCUMENTS,
+        });
+
+        // 切換到新建立的頁籤
+        switchTab(newDayId);
+
+        // 清空輸入框
+        titleInput.value = '';
+        saveData();
+    }
+    
+// 新增函式：排序並重新繪製單日行程卡片
+function sortAndRenderDayActivities(dayId) {
+    if (!ITINERARY[dayId]) return;
+
+    // 1. 根據時間和活動類型排序 ITINERARY 數據結構
+    ITINERARY[dayId].sort((a, b) => {
+        const isALodging = a.type === 'lodging';
+        const isBLodging = b.type === 'lodging';
+        
+        // 規則一：Lodging (住宿) 永遠排在清單的最後
+        if (isALodging && !isBLodging) {
+            return 1; // a 是住宿，a 排在 b 後面
+        }
+        if (!isALodging && isBLodging) {
+            return -1; // b 是住宿，a 排在 b 前面
+        }
+        // 如果兩者都是住宿，或兩者都不是住宿 (如交通、活動)，則進入時間比較
+        
+        // 規則二：按時間排序（無時間或無法解析的排在後面）
+        const timeA = (a.time || 'zzz').toLowerCase();
+        const timeB = (b.time || 'zzz').toLowerCase();
+
+        // 字母順序排序 (適用於 HH:MM 格式，例如 15:30)
+        return timeA.localeCompare(timeB);
+    });
+
+    // 2. 重新渲染該日的 DOM
+    const tabContent = document.querySelector(`.tab-content[data-tab-content-id="${dayId}"]`);
+    tabContent.innerHTML = ''; // 清空現有內容
+
+    // 重新繪製活動卡片
+    ITINERARY[dayId].forEach(activity => {
+        tabContent.insertAdjacentHTML('beforeend', renderActivityCard(activity, dayId));
+    });
+
+    // 初始化編輯事件和地圖連結
+    initEditableContent();
+    document.querySelectorAll('.activity-card').forEach(updateMapLinksForCard);
+    
+}
+
+    // ====================================
+    // 費用清單功能
+    // ====================================
+
+    // 根據類別獲取 Emoji
+    function getCategoryEmoji(category) {
+        switch (category) {
+            case '飲食': return '🍕';
+            case '交通': return '✈️';
+            case '住宿': return '🏨';
+            case '購物': return '🛍️';
+            case '活動': return '⛷️';
+            case '其他': return '❓';
+            default: return '❓';
+        }
+    }
+
+    // 獲取當前匯率
+    function getCurrentExchangeRate() {
+        const rate = parseFloat(document.getElementById('currentExchangeRate').value);
+        return isNaN(rate) || rate <= 0 ? 3.00 : rate;
+    }
+
+    // 新增支出
+    function addExpense() {
+        const date = document.getElementById('expenseDate').value;
+        const category = document.getElementById('expenseCategory').value;
+        const description = document.getElementById('expenseDescription').value.trim();
+        const amountNOK = parseFloat(document.getElementById('expenseAmountNOK').value);
+        const rate = getCurrentExchangeRate();
+
+        if (!date || !description || isNaN(amountNOK) || amountNOK <= 0) {
+            alert('請填寫完整日期、描述和挪威克朗金額！');
+            return;
+        }
+
+        const amountNTD = Math.round(amountNOK * rate);
+        const newExpense = {
+            date: date,
+            category: category,
+            description: description,
+            amountNOK: amountNOK,
+            amountNTD: amountNTD,
+            exchangeRate: rate
+        };
+
+        EXPENSES.push(newExpense); // 推入到數據結構
+        
+        // 渲染到 DOM (使用 sortAndFilterExpenses 統一渲染)
+        sortAndFilterExpenses();
+
+        // 清空輸入框
+        document.getElementById('expenseDescription').value = '';
+        document.getElementById('expenseAmountNOK').value = '';
+        saveData();
+    }
+
+    // 刪除費用卡片
+    function deleteCard(btn) {
+        if (!confirm('確定要刪除這筆資料嗎？')) return;
+        const card = btn.closest('.expense-card') || btn.closest('.document-card') || btn.closest('.packing-item');
+        if (!card) return;
+
+        // 判斷是費用、文件還是打包清單
+        if (card.classList.contains('expense-card')) {
+            const date = card.getAttribute('data-iso-date');
+            const description = card.querySelector('.card-description').textContent.trim();
+
+            // 從 EXPENSES 數據結構中刪除
+            const index = EXPENSES.findIndex(e => e.date === date && e.description === description);
+            if (index !== -1) {
+                EXPENSES.splice(index, 1);
+            }
+            sortAndFilterExpenses(); // 重新渲染費用清單
+
+        } else if (card.classList.contains('document-card')) {
+            const title = card.getAttribute('data-doc-title');
+            const index = DOCUMENTS.findIndex(d => d.title === title);
+            if (index !== -1) {
+                DOCUMENTS.splice(index, 1);
+            }
+            card.remove();
+
+        } else if (card.classList.contains('packing-item')) {
+            const desc = card.getAttribute('data-item-desc');
+            const index = PACKING_LIST.findIndex(p => p.description === desc);
+            if (index !== -1) {
+                PACKING_LIST.splice(index, 1);
+            }
+            card.remove();
+        }
+
+        saveData();
+    }
+
+    // 更新總計
+    function updateTotal() {
+        const totalAmountDisplay = document.getElementById('totalAmount');
+        const totalNokAmountDisplay = document.getElementById('totalNokAmount');
+        
+        // 總是從 EXPENSES 數組中計算總額
+        let totalNTD = 0;
+        let totalNOK = 0;
+
+        EXPENSES.forEach(expense => {
+            totalNTD += expense.amountNTD;
+            totalNOK += expense.amountNOK;
+        });
+
+        if (totalAmountDisplay) {
+            totalAmountDisplay.textContent = totalNTD.toLocaleString('en-US');
+        }
+        if (totalNokAmountDisplay) {
+            totalNokAmountDisplay.textContent = totalNOK.toLocaleString('en-US');
+        }
+    }
+
+
+    // 排序和篩選費用清單
+    function sortAndFilterExpenses() {
+        const container = document.getElementById('expenseBody');
+        const filterCriteria = document.getElementById('expenseFilter').value;
+        const sortCriteria = document.getElementById('expenseSort').value;
+
+        if (!container) return;
+
+        // 1. 排序 (直接對 EXPENSES 進行排序)
+        EXPENSES.sort((a, b) => {
+            const amountA = a.amountNTD;
+            const amountB = b.amountNTD;
+            const dateA = a.date;
+            const dateB = b.date;
+            const categoryA = a.category;
+            const categoryB = b.category;
+
+            switch (sortCriteria) {
+                case 'date_desc': return dateB.localeCompare(dateA);
+                case 'date_asc': return dateA.localeCompare(dateB);
+                case 'ntd_desc': return amountB - amountA;
+                case 'ntd_asc': return amountA - amountB;
+                case 'category_asc': return categoryA.localeCompare(categoryB);
+                default: return 0;
+            }
+        });
+        
+        // 2. 重新渲染已排序的列表 (應用篩選邏輯)
+        container.innerHTML = EXPENSES.map(expense => {
+            const emoji = getCategoryEmoji(expense.category);
+            const rate = expense.exchangeRate;
+            const amountNTD = expense.amountNTD;
+            const dateObj = new Date(expense.date);
+            const dateStr = `${dateObj.getMonth() + 1}/${dateObj.getDate()}`;
+            
+            // 應用篩選邏輯
+            if (filterCriteria !== 'all' && expense.category !== filterCriteria) return '';
+
+            return `
+                <div class="expense-card" data-category="${expense.category}" data-amount="${amountNTD}" data-nok="${expense.amountNOK}" data-rate="${rate.toFixed(2)}" data-date-str="${dateStr}" data-iso-date="${expense.date}">
+                    <span class="card-icon">${emoji}</span>
+                    <div class="card-main-info">
+                        <div class="card-description">${expense.description}</div>
+                        <div class="card-meta">${expense.category} · ${dateStr} (匯率 ${rate.toFixed(2)})</div>
+                    </div>
+                    <div class="card-amounts">
+                        <div class="amount-ntd">NTD ${amountNTD.toLocaleString('en-US')}</div>
+                        <div class="amount-nok">NOK ${expense.amountNOK.toLocaleString('en-US')}</div>
+                    </div>
+                    <button class="delete-card-btn" onclick="deleteCard(this)">刪除</button>
+                </div>
+            `;
+        }).join('');
+        
+        // 確保總計更新是根據所有 EXPENSES 數據
+        updateTotal(); 
+    }
+
+
+    // ===================================
+    // 支出統計功能
+    // ===================================
+    function generateExpenseStatsTable() {
+        const container = document.getElementById('expenseStatsContainer');
+        if (!container) return;
+
+        const categoryTotals = {};
+        let grandTotalNTD = 0;
+
+        // 計算每個類別的總額
+        EXPENSES.forEach(expense => {
+            const category = expense.category;
+            const amount = expense.amountNTD;
+            categoryTotals[category] = (categoryTotals[category] || 0) + amount;
+            grandTotalNTD += amount;
+        });
+
+        if (grandTotalNTD === 0) {
+            container.innerHTML = '<p style="color: #9b7673; font-weight: bold;">目前沒有任何支出記錄。</p>';
+            return;
+        }
+
+        let tableHtml = `
+            <table class="stats-table">
+                <thead>
+                    <tr>
+                        <th>類別</th>
+                        <th style="text-align: right;">金額 (NTD)</th>
+                        <th>佔總額百分比</th>
+                    </tr>
+                </thead>
+                <tbody>
+        `;
+
+        // 排序類別名稱
+        const sortedCategories = Object.keys(categoryTotals).sort();
+
+        // 填充表格內容
+        sortedCategories.forEach(category => {
+            const total = categoryTotals[category];
+            const percentage = ((total / grandTotalNTD) * 100).toFixed(1);
+            
+            tableHtml += `
+                <tr>
+                    <td>${getCategoryEmoji(category)} ${category}</td>
+                    <td style="text-align: right;">NTD ${total.toLocaleString('en-US')}</td>
+                    <td class="percentage-cell">${percentage}%</td>
+                </tr>
+            `;
+        });
+
+        tableHtml += `
+            <tr class="total-row">
+                <td>總計</td>
+                <td style="text-align: right;">NTD ${grandTotalNTD.toLocaleString('en-US')}</td>
+                <td>100.0%</td>
+            </tr>
+            </tbody>
+            </table>
+        `;
+        
+        container.innerHTML = tableHtml;
+    }
+
+
+    // ===================================
+    // 打包清單功能
+    // ===================================
+    function addPackingItem() {
+        const itemDescription = document.getElementById('packingItem').value.trim();
+        if (itemDescription === '') {
+            alert('請輸入物品名稱！');
+            return;
+        }
+
+        const newItem = { description: itemDescription, checked: false };
+        PACKING_LIST.push(newItem);
+
+        renderPackingList();
+        document.getElementById('packingItem').value = '';
+        saveData();
+    }
+
+    function togglePackingCheck(itemElement) {
+        const desc = itemElement.getAttribute('data-item-desc');
+        const item = PACKING_LIST.find(p => p.description === desc);
+
+        if (item) {
+            item.checked = !item.checked;
+        }
+
+        renderPackingList(); // 重新渲染以更新 class
+        saveData();
+    }
+
+    function renderPackingList() {
+        const container = document.getElementById('packingList');
+        container.innerHTML = PACKING_LIST.map(item => {
+            const checkedClass = item.checked ? 'checked' : '';
+            return `
+                <div class="packing-item ${checkedClass}" data-item-desc="${item.description}" onclick="togglePackingCheck(this)">
+                    <div class="card-main-info">
+                        <div class="card-description">${item.description}</div>
+                    </div>
+                    <button class="delete-card-btn" onclick="event.stopPropagation(); deleteCard(this);">刪除</button>
+                </div>
+            `;
+        }).join('');
+    }
+
+    // ===================================
+    // 重要文件功能
+    // ===================================
+    function addDocument() {
+        const title = document.getElementById('docTitle').value.trim();
+        const link = document.getElementById('docLink').value.trim();
+
+        if (title === '') {
+            alert('請輸入文件標題！');
+            return;
+        }
+
+        if (link !== '' && !link.startsWith('http')) {
+            alert('請輸入有效的 URL 連結 (需包含 http:// 或 https://)。');
+            return;
+        }
+
+        const newDocData = { title: title, link: link };
+        DOCUMENTS.push(newDocData); // 儲存到數據結構
+
+        // 渲染到 DOM
+        renderDocumentList();
+        document.getElementById('docTitle').value = '';
+        document.getElementById('docLink').value = '';
+        saveData();
+    }
+
+    function renderDocumentList() {
+        const documentList = document.getElementById('documentList');
+        documentList.innerHTML = DOCUMENTS.map(doc => {
+            const linkHTML = doc.link && doc.link.startsWith('http') ? `<a href="${doc.link}" target="_blank" class="doc-link">🔗 查看文件</a>` : `<span class="doc-link" style="color:#999; cursor:default;">無連結</span>`;
+            return `
+                <div class="document-card" data-doc-title="${doc.title || '無標題'}" data-doc-link="${doc.link || ''}">
+                    <div class="document-title">${doc.title || '無標題'}</div>
+                    <div style="display: flex; gap: 10px; align-items: center;">
+                        ${linkHTML}
+                        <button class="delete-card-btn" onclick="deleteCard(this)">刪除</button>
+                    </div>
+                </div>
+            `;
+        }).join('');
+    }
+
+    // ====================================
+    // 資料儲存與載入
+    // ====================================
+
+    // 獲取行程清單的結構化資料 (從 DOM 中更新 ITINERARY 數據)
+    function getItineraryData() {
+        // 確保 ITINERARY 結構與當前 DOM 狀態同步
+        ITINERARY_TABS.forEach(tab => {
+            const dayId = tab.id;
+            const activities = [];
+            const cards = document.querySelectorAll(`.tab-content[data-tab-content-id="${dayId}"] .activity-card`);
+
+            cards.forEach(card => {
+                const activityId = parseInt(card.getAttribute('data-activity-id'));
+                const activityTime = card.querySelector('.card-time').textContent.trim();
+                const activityDescription = card.querySelector('.editable-content').innerHTML.trim(); // 使用 innerHTML 獲取高亮標籤
+                const activityType = card.getAttribute('data-type');
+                
+                // 嘗試從 ITINERARY 找到已儲存的 mapUrlOverride
+                const existingActivity = ITINERARY[dayId] ? ITINERARY[dayId].find(a => a.id === activityId) : null;
+                const mapUrlOverride = existingActivity ? existingActivity.mapUrlOverride : "";
+
+                activities.push({
+                    id: activityId,
+                    time: activityTime,
+                    description: activityDescription,
+                    type: activityType,
+                    mapUrlOverride: mapUrlOverride // 儲存 override 連結，而不是從 DOM 讀取
+                });
+            });
+            ITINERARY[dayId] = activities;
+        });
+
+        return ITINERARY;
+    }
+
+    // 儲存所有數據
+    function saveData() {
+        getItineraryData(); // 從 DOM 更新行程
+
+        // --- 修正：編輯時間後，立即排序並重新渲染當前日期的活動 ---
+        const activeTabId = document.querySelector('.tab-button.active')?.getAttribute('data-tab-id');
+        if (activeTabId && activeTabId.startsWith('day')) {
+            sortAndRenderDayActivities(activeTabId);
+        }
+        // --- 修正結束 ---
+
+
+        const dataToSave = {
+            expenses: EXPENSES,
+            itinerary: ITINERARY,
+            itineraryTabs: ITINERARY_TABS,
+            dayCounter: dayCounter,
+            packingList: PACKING_LIST,
+            documents: DOCUMENTS,
+            lastSave: new Date().toISOString()
+        };
+
+        try {
+            localStorage.setItem(STORAGE_KEY, JSON.stringify(dataToSave));
+            document.getElementById('lastSaveTime').textContent = new Date().toLocaleString();
+        } catch (e) {
+            console.error("Error saving to localStorage", e);
+            alert("資料儲存失敗，可能是瀏覽器空間不足。");
+        }
+    }
+
+    // 載入所有數據
+    function loadData() {
+        const rawData = localStorage.getItem(STORAGE_KEY);
+        if (!rawData) {
+            // 如果沒有儲存的資料，則使用預設值
+            ITINERARY_TABS.forEach(tab => { ITINERARY[tab.id] = []; });
+            // 將 DOM 中的預設卡片同步到 ITINERARY 數據結構中
+            getItineraryData();
+            // 渲染列表
+            sortAndFilterExpenses();
+            renderPackingList();
+            renderDocumentList();
+            initEditableContent();
+            // 初始化所有 Day 頁籤的地圖連結
+            ITINERARY_TABS.filter(t => t.id.startsWith('day')).forEach(tab => {
+                document.querySelectorAll(`.tab-content[data-tab-content-id="${tab.id}"] .activity-card`).forEach(card => {
+                    updateMapLinksForCard(card);
+                });
+            });
+
+            document.getElementById('lastSaveTime').textContent = '無記錄';
+            return;
+        }
+
+        try {
+            const data = JSON.parse(rawData);
+            renderTabsAndContent(data);
+            
+        } catch (e) {
+            console.error("Error parsing stored data", e);
+            alert("載入儲存的資料失敗，資料可能已損壞，已重置為預設值。");
+            localStorage.removeItem(STORAGE_KEY);
+            loadData(); // 重新載入預設值
+        }
+    }
+
+
+    // 重新渲染所有 Tab Button 和 Tab Content
+    function renderTabsAndContent(data) {
+        
+        // 驗證核心數據結構
+        if (!data.expenses || !data.itinerary || !data.itineraryTabs || !data.dayCounter) {
+            throw new Error("資料結構不完整，將重置為預設值。");
+        }
+
+        // 1. 載入核心數據
+        EXPENSES = data.expenses || DEFAULT_EXPENSES;
+        ITINERARY = data.itinerary || ITINERARY;
+        ITINERARY_TABS = data.itineraryTabs || DEFAULT_TABS;
+        dayCounter = data.dayCounter || 12;
+        PACKING_LIST = data.packingList || [];
+        DOCUMENTS = data.documents || [];
+
+
+        // 2. 重新建立 Tab Buttons 和 Tab Contents
+        const tabBar = document.getElementById('tabBar');
+        tabBar.innerHTML = ''; // 清空 Tab Button
+
+        // 清空 Tab Content (只保留 expenses, stats, packing, documents, backup, manager)
+        const itinerarySection = document.getElementById('itinerarySection');
+        document.querySelectorAll('.tab-content:not([data-tab-content-id="expenses"]):not([data-tab-content-id="stats"]):not([data-tab-content-id="packing"]):not([data-tab-content-id="documents"]):not([data-tab-content-id="backup"]):not([data-tab-content-id="manager"])').forEach(el => el.remove());
+
+        const fixedTabs = [
+            { id: "expenses", title: "💰 費用清單" },
+            { id: "manager", title: "➕ 行程管理" },
+            { id: "stats", title: "📊 支出統計" },
+            { id: "packing", title: "📦 打包清單" },
+            { id: "documents", title: "📄 文件清單" },
+            { id: "backup", title: "💾 儲存修復" }
+        ];
+
+        // 組合所有頁籤，並確保 Day 頁籤在 Manager 頁籤之前
+        // --- 修正後的排序邏輯：使用數值比較 (已修正) ---
+        const dayTabs = ITINERARY_TABS.filter(t => t.id.startsWith('day')).sort((a, b) => {
+            const numA = parseInt(a.id.replace('day', ''));
+            const numB = parseInt(b.id.replace('day', ''));
+            return numA - numB;
+        });
+        // ------------------------------------
+
+        let allTabs = [fixedTabs[0]]; // expenses
+        allTabs = allTabs.concat(dayTabs); // days
+        allTabs.push(fixedTabs[1]); // manager
+        allTabs = allTabs.concat(fixedTabs.slice(2)); // stats, packing, documents, backup
+        
+
+        allTabs.forEach(tab => {
+            // 創建 Tab Button
+            const newButton = document.createElement('button');
+            newButton.classList.add('tab-button');
+            newButton.setAttribute('data-tab-id', tab.id);
+            newButton.textContent = tab.title;
+            newButton.addEventListener('click', function() {
+                switchTab(this.getAttribute('data-tab-id'));
+            });
+            tabBar.appendChild(newButton);
+
+            // 創建 Tab Content (如果還不存在)
+            let tabContent = document.querySelector(`.tab-content[data-tab-content-id="${tab.id}"]`);
+            if (!tabContent && tab.id.startsWith('day')) {
+                tabContent = document.createElement('div');
+                tabContent.classList.add('tab-content');
+                tabContent.setAttribute('data-tab-content-id', tab.id);
+                // 插入到正確的位置
+                const managerContent = document.querySelector(`.tab-content[data-tab-content-id="manager"]`);
+                itinerarySection.insertBefore(tabContent, managerContent);
+            }
+            
+            // 渲染 Day 頁籤的活動內容
+            if (tab.id.startsWith('day') && ITINERARY[tab.id] && tabContent) {
+                tabContent.innerHTML = ''; // 清空內容
+                // 載入時也需要確保是排序過的
+                sortAndRenderDayActivities(tab.id); // 使用新增的排序函數
+            }
+        });
+
+        // 3. 渲染列表和初始化
+        sortAndFilterExpenses(); // 重新渲染費用清單
+        renderPackingList();
+        renderDocumentList();
+
+        // 初始化編輯事件和地圖連結
+        initEditableContent();
+        document.querySelectorAll('.activity-card').forEach(card => {
+            updateMapLinksForCard(card);
+        });
+
+        // 設置最後儲存時間
+        document.getElementById('lastSaveTime').textContent = data.lastSave ? new Date(data.lastSave).toLocaleString() : '無記錄';
+
+        // 預設切換到 expenses
+        switchTab("expenses");
+    }
+
+
+    // 匯出資料
+    function exportData() {
+        getItineraryData(); // 確保最新 DOM 內容已存入 ITINERARY
+        const rawData = localStorage.getItem(STORAGE_KEY);
+        
+        if (!rawData) {
+            alert('沒有儲存的資料可以匯出。');
+            return;
+        }
+
+        try {
+            const data = JSON.parse(rawData);
+            const formattedData = JSON.stringify(data, null, 2);
+            
+            navigator.clipboard.writeText(formattedData).then(() => {
+                alert('備份資料 (JSON 格式) 已成功複製到剪貼板！\n您可以將其貼到筆記本或文件中儲存。');
+            }).catch(err => {
+                console.error('複製失敗: ', err);
+                alert('複製到剪貼板失敗，請查看控制台錯誤。');
+            });
+            
+        } catch (e) {
+            alert('儲存的資料格式不正確，無法匯出。');
+        }
+    }
+
+    // 載入資料 (從輸入框)
+    function importData() {
+        const backupData = prompt("請貼上您的備份資料 (JSON 格式):\n\n注意：這將會覆蓋您當前儲存在瀏覽器中的所有數據！");
+        
+        if (backupData === null || backupData.trim() === '') {
+            return; 
+        }
+
+        try {
+            const data = JSON.parse(backupData);
+            
+            // 簡單驗證結構
+            if (!data.expenses || !data.itinerary || !data.itineraryTabs || !data.dayCounter) {
+                throw new Error('資料結構不完整。');
+            }
+
+            // 存入 localStorage 並重新載入
+            localStorage.setItem(STORAGE_KEY, backupData);
+            alert('資料匯入成功！頁面將重新載入以顯示新數據。');
+            window.location.reload(); 
+            
+        } catch (e) {
+            alert(`資料匯入失敗: ${e.message || '資料格式不正確。'} 請確認您貼上的是正確的 JSON 備份資料。`);
+        }
+    }
+
+    // 重置資料
+    function resetData() {
+        if (confirm('🚨 警告：您確定要清除所有儲存的行程和費用資料嗎？此操作不可逆！')) {
+            localStorage.removeItem(STORAGE_KEY);
+            alert('所有資料已清除。頁面將重新載入以顯示預設內容。');
+            window.location.reload();
+        }
+    }
+
+</script>
+
+</body>
+</html>
